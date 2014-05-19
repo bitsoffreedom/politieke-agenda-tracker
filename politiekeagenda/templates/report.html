@@ -1,0 +1,97 @@
+<%! import cherrypy %>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title></title>
+        <style type="text/css">
+        .assembly .row {
+            clear: both;
+        }
+        
+        .assembly .label {
+            display: block;
+            float: left;
+            width: 200px;
+        }
+        
+        .highlight {
+            background-color: #97ff95;
+            color: #000;
+        }
+        </style>
+        <script type="text/javascript" src="${cherrypy.url('/js/jquery.js')}"></script>
+        <script type="text/javascript">
+        $(document).ready(function() {
+            $(".assembly:not(.match)").hide();
+            
+            $(".details-expander").click(function() {
+                $(this).closest(".assembly").find(".details").toggle();
+            });
+        });
+        </script>
+    </head>
+    <body>
+        <div style="margin-bottom: 1em;">
+            <a href="${cherrypy.url('/log')}">Log</a> | <a href="${cherrypy.url('/scrape')}">Update database</a>
+        </div>
+        
+        <div style="margin-bottom: 1em;">Zoekwoorden: <span id="keywords">${keywords_raw}</span> (<a href="${cherrypy.url('/config')}">aanpassen</a>)</div>
+        
+        <div style="margin-bottom: 1em;">
+            <button onclick='$(".assembly").show();'>Toon alles</button>
+            <button onclick='$(".assembly:not(.match)").hide();'>Filter</button>
+            <button onclick='$(".assembly .details").show();'>Alles uitklappen</button>
+            <button onclick='$(".assembly .details").hide();'>Alles inklappen</button>
+        </div>
+        
+        %for assembly in assemblies:
+        <div class="assembly ${'match' if assembly.does_match else ''}">
+            <div style="clear: both;"><a href="${assembly.url}">${assembly.url}</a></div>
+            %if assembly.type:
+                <div class="row"><span class="label">Type:</span><span>${assembly.type}</span></div>
+            %endif
+            <div class="row"><span class="label">Datum:</span><span>${assembly.date}</span></div>
+            %if assembly.start_time:
+                <div class="row">
+                    <span class="label">Tijd:</span>
+                    <span class="start-time">${assembly.start_time}</span>
+                    %if assembly.end_time: 
+                        <span>- <span class="end-time">${assembly.end_time}</span></span>
+                    %endif
+                    </div>
+            %endif
+            %if assembly.parlisnumber:
+                <div class="row"><span class="label">NUmmer:</span><span>${assembly.parlisnumber}</span></div>
+            %endif
+            %if assembly.status:
+                <div class="row"><span class="label">Status:</span><span>${assembly.status}</span></div>
+            %endif
+            %if assembly.is_public:
+                <div class="row"><span class="label">Publiek:</span><span>${assembly.is_public}</span></div>
+            %endif
+            %if assembly.location:
+                <div class="row"><span class="label">Plaats:</span><span>${assembly.location}</span></div>
+            %endif
+            %if assembly.variety:
+                <div class="row"><span class="label">Soort:</span><span>${assembly.variety}</span></div>
+            %endif
+            %if assembly.committee:
+                <div class="row"><span class="label">Werkgroup:</span><span>${assembly.committee}</span></div>
+            %endif
+            %if assembly.summary:
+                <div class="row"><span class="label">Samenvatting:</span><span>${assembly.summary}</span></div>
+            %endif
+            %if len(assembly.keywords_matched) > 0:
+                <div class="row"><span class="label">Zoekwoorden gevonden:</span><span>${", ".join(assembly.keywords_matched)}</span></div>
+            %endif
+            <div style="clear:both;"><button class="details-expander">Uitklappen</button></div>
+            <div class="details" style="clear: both; display: none;">
+<pre style="white-space: pre-wrap;">
+${assembly.details_text}
+</pre>
+            </div>
+        </div>
+        %endfor
+    </body>
+</html>

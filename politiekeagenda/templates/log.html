@@ -1,0 +1,26 @@
+<%! 
+import cherrypy
+from datetime import datetime 
+%>
+
+<%inherit file="base.html"/>
+
+<div style="margin-bottom: 1em;">
+    <div>
+        <a href="${cherrypy.url('/log?type=match')}">Only matching</a> | 
+        <a href="${cherrypy.url('/log?type=unmatched')}">Only non-matching</a> | 
+        <a href="${cherrypy.url('/log?type=changes')}">Only changes</a> |
+        <a href="${cherrypy.url('/log?type=all')}">View all</a>
+    </div>
+</div>
+
+<form action="${cherrypy.url('/handle_log')}" method="POST">
+    <button name="action" value="clear">Clear</button>
+    <input type="hidden" name="redirect_to" value="${cherrypy.url(qs=cherrypy.request.query_string)}"/>
+    
+    %for entry in entries:
+        <div class="log-entry">
+            <a href="${cherrypy.url('/handle_log')}?action=clear&entry_ids=${entry.id}&redirect_to=${cherrypy.url(qs=cherrypy.request.query_string)}">X</a><input type="hidden" name="entry_ids" value="${entry.id}"/> ${datetime.fromtimestamp(entry.datetime).strftime("%d %B %Y %H:%M")} - ${entry.content}
+        </div>
+    %endfor
+</form>

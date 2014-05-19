@@ -1,0 +1,76 @@
+<%! import cherrypy %>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title></title>
+        <style type="text/css">
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        
+        p {
+            padding-bottom: 1em;
+        }
+        
+        ul {
+            padding-left: 1em;
+        }
+        
+        #header {
+            background-image: url('${cherrypy.url('/images/header.png')}');
+            background-repeat: repeat-x;
+            height: 125px;
+            padding-top: 3.5em;
+        }
+        
+        #logo, #menu {
+            float: left;
+        }
+        
+        #menu {
+            margin-top: 1.5em;
+        }
+        
+        #menu .menu {
+            float: left;
+            margin-left: 3em;
+        }
+        
+        #content {
+            padding: 1em;
+        }
+        </style>
+        <style type="text/css">
+        .highlight {
+            background-color: #97ff95;
+            color: #000;
+        }
+        </style>
+        <script type="text/javascript" src="${cherrypy.url('/js/jquery.js')}"></script>
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="${cherrypy.url('/')}">
+                    <img src="${cherrypy.url('/images/bof-politiekeagenda.png')}"/>
+                </a>
+            </div>
+            
+            <!--
+            <div id="menu">
+                <div class="menu">
+                    <ul>
+                        <li><a href="${cherrypy.url('/config/')}">Configuratie</a></li>
+                    </ul>
+                </div>
+            </div>
+            -->
+        </div>
+        
+        <div id="content">
+            ${self.body()}
+        </div>
+    </body>
+</html>

@@ -1,0 +1,39 @@
+= Requirements =
+
+The application uses CherryPy as minimalistic web framework, Mako as a templating engine and SQLAlchemy as its ORM.
+
+= Scraper =
+
+The scraper is located at and can be run through: bof/politiekeagenda/scrapers/main.py.
+
+If bypass_cache in config.py is set to True (default) the scraper will bypass the cache in bof/politiekeagenda/data/
+
+= Database =
+
+The application currently uses a SQLite database, which means that the user running the Apache process needs to have rw(x) permission on the database and all directories (to be able to lock it).
+
+If you switch to a database server such as MySQL or PostgreSQL you won't have to.
+
+The SQLite database is located at bof/politiekeagenda/database.sqlite
+
+There are three tables: assemblies, revisions and config.
+
+= Hosting =
+
+You can use the following Apache configuration to host the application using mod_wsgi as http://politiekeagenda.bof.nl/:
+
+<VirtualHost *:80>
+        ServerName politiekeagenda.bof.nl
+        WSGIScriptAlias / /var/www/politiekeagenda.bof.nl/bof/politiekeagenda/application.py
+</VirtualHost>
+
+= Debugging =
+
+You can also run the application without hosting it by running bof/politiekeagenda/main.py
+
+You can then access the application through http://localhost:8080/
+
+= License =
+
+The software is published under a BSD-license. It was developed by a volunteer of Bits of Freedom.
+

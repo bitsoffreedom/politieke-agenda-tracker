@@ -1,0 +1,11 @@
+#!/bin/sh
+
+set -e 
+
+PORT=3017
+BIND=127.0.0.1
+WORKDIR=/data/WWW/politiekeagenda.bof.nl/Politieke-Agenda-Tracker/politiekeagenda
+
+cd $WORKDIR
+nohup python ./main.py 2>&1 & 
+#nohup python main.py runserver $BIND:$PORT 2>&1 & 

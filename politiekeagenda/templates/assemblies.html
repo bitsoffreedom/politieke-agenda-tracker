@@ -1,0 +1,197 @@
+<%! 
+from datetime import datetime
+
+import cherrypy 
+
+import bof.politiekeagenda.database as  database
+import bof.politiekeagenda.models as models
+
+from bof.politiekeagenda.helpers import html2text, matches
+%>
+
+<%
+session = database.Session()
+keywords_raw = session.query(models.Config).filter(models.Config.key=="keywords").one().value
+keywords = [keyword.strip() for keyword in keywords_raw.split(u",")]
+%>
+
+<%inherit file="base.html"/>
+
+<style type="text/css">
+.assembly .row {
+    clear: both;
+}
+
+.assembly .label {
+    display: block;
+    float: left;
+    width: 200px;
+}
+
+</style>
+<script type="text/javascript">
+$(document).ready(function() {
+    $(".details-expander").click(function() {
+        $(this).closest(".assembly").find(".details").toggle();
+    });
+    
+    $(".actions .track").click(function() {
+        var assembly = $(this).closest(".assembly");
+        $.ajax({
+            url: "${cherrypy.url("/track")}",
+            type: "POST",
+            data: {
+                "assembly_id": $(this).attr("assembly_id")
+            },
+            success: function(data) {
+                assembly.css("background-color", "#F1FFEE");
+            }
+        });
+    });
+    
+    $(".actions .ignore").click(function() {
+        var assembly = $(this).closest(".assembly");
+        $.ajax({
+            url: "${cherrypy.url("/ignore")}",
+            type: "POST",
+            data: {
+                "assembly_id": $(this).attr("assembly_id")
+            },
+            success: function(data) {
+                assembly.css("background-color", "#FFEEF0");
+            }
+        });
+    });
+    
+    $(".actions .clear").click(function() {
+        var assembly = $(this).closest(".assembly");
+        $.ajax({
+            url: "${cherrypy.url("/clear")}",
+            type: "POST",
+            data: {
+                "assembly_id": $(this).attr("assembly_id")
+            },
+            success: function(data) {
+                assembly.css("background-color", "transparent");
+            }
+        });
+    });
+});
+</script>
+
+<div style="margin-bottom: 1em;">Zoekwoorden: <span id="keywords">${keywords_raw}</span> (<a href="${cherrypy.url('/config')}">Aanpassen</a>)</div>
+
+<div style="margin-bottom: 1em;">
+    <button onclick='$(".assembly").show();'>Toon alles</button>
+    <button onclick='$(".assembly:not(.match)").hide();'>Filter</button>
+    <button onclick='$(".assembly .details").show();'>Alles uitklappen</button>
+    <button onclick='$(".assembly .details").hide();'>Alles inklappen</button>
+</div>
+
+%for assembly in assemblies:
+<%
+# Convert dates to strings
+date = datetime.fromtimestamp(assembly.latest_revision.date).strftime("%d %B %Y") if assembly.latest_revision.date else None
+start_time = datetime.fromtimestamp(assembly.latest_revision.start_time).strftime("%H:%M") if assembly.latest_revision.start_time else None
+end_time = datetime.fromtimestamp(assembly.latest_revision.end_time).strftime("%H:%M") if assembly.latest_revision.end_time else None
+
+# Check if the keywords match
+assembly_keywords_matched = []
+assembly_does_match = False
+
+if assembly.latest_revision.summary:
+    does_match, content, keywords_matched = matches(keywords, assembly.latest_revision.summary)
+    if does_match: assembly_does_match = True
+    summary = content
+    assembly_keywords_matched.extend(keywords_matched)
+
+# Convert raw HTML details to plain text
+details_text = html2text(assembly.latest_revision.details_raw)
+    
+if details_text:
+    does_match, content, keywords_matched = matches(keywords, details_text)
+    if does_match: assembly_does_match = True
+    details_text = content
+    assembly_keywords_matched.extend(keywords_matched)
+    
+assembly_keywords_matched = set(assembly_keywords_matched)
+
+# Color the assembly according to a status
+background_color = "transparent"
+if assembly.missing: background_color = "#F1F1F1"
+elif assembly.track: background_color = "#F1FFEE"
+elif assembly.ignore: background_color = "#FFEEF0"
+
+%>
+
+<div class="assembly ${'match' if assembly_does_match else ''}" style="${'display: none;' if not assembly_does_match else ''} background-color: ${background_color}">
+    <div style="clear: both;"><a href="${assembly.url}">${assembly.url}</a></div>
+    %if assembly.house:
+        <div class="row"><span class="label">Kamer:</span>
+            <span>
+            %if assembly.house == "house":
+                Tweede kamer
+            %elif assembly.house == "senate":
+                Eerste kamer
+            %endif
+            </span>
+        </div>
+    %endif
+    %if assembly.type:
+        <div class="row"><span class="label">Soort:</span><span>${assembly.type}</span></div>
+    %endif
+    <div class="row">
+        <span class="label">Datum:</span>
+        <span>
+            %if assembly.latest_revision.time_period == "week": 
+                week van
+            %endif
+            ${date}
+        </span>
+    </div>
+    %if assembly.latest_revision.start_time:
+        <div class="row">
+            <span class="label">Tijd:</span>
+            <span class="start-time">${start_time}</span>
+            %if assembly.latest_revision.end_time: 
+                <span>- <span class="end-time">${end_time}</span></span>
+            %endif
+            </div>
+    %endif
+    %if assembly.latest_revision.parlisnumber:
+        <div class="row"><span class="label">Nummer:</span><span>${assembly.latest_revision.parlisnumber}</span></div>
+    %endif
+    %if assembly.latest_revision.status:
+        <div class="row"><span class="label">Status:</span><span>${assembly.latest_revision.status}</span></div>
+    %endif
+    %if assembly.latest_revision.is_public:
+        <div class="row"><span class="label">Publiek:</span><span>${assembly.latest_revision.is_public}</span></div>
+    %endif
+    %if assembly.latest_revision.location:
+        <div class="row"><span class="label">Plaats:</span><span>${assembly.latest_revision.location}</span></div>
+    %endif
+    %if assembly.latest_revision.variety:
+        <div class="row"><span class="label">Soort:</span><span>${assembly.latest_revision.variety}</span></div>
+    %endif
+    %if assembly.latest_revision.committee:
+        <div class="row"><span class="label">Werkgroup:</span><span>${assembly.latest_revision.committee}</span></div>
+    %endif
+    %if assembly.latest_revision.summary:
+        <div class="row"><span class="label">Samenvatting:</span><span>${summary}</span></div>
+    %endif
+    %if len(assembly_keywords_matched) > 0:
+        <div class="row"><span class="label">Zoekwoorden gevonden:</span><span class="highlight">${", ".join(assembly_keywords_matched)}</span></div>
+    %endif
+    <div style="clear:both;" class="actions">
+        <button class="details-expander">Uitklappen</button>
+        <button class="track" assembly_id="${assembly.id}">Volgen</button>
+        <button class="ignore" assembly_id="${assembly.id}">Negeren</button>
+        <button class="clear" assembly_id="${assembly.id}">Wis instellingen</button>
+    </div>
+    <div class="details" style="clear: both; display: none;">
+<pre style="white-space: pre-wrap;">
+${details_text}
+</pre>
+    </div>
+</div>
+%endfor

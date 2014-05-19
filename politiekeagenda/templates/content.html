@@ -1,0 +1,16 @@
+<%!
+import cherrypy
+%>
+
+<%inherit file="base.html"/>
+
+<div style="margin-bottom: 1em;">Zoekwoorden: <span id="keywords">${keywords_raw}</span> (<a href="${cherrypy.url('/config')}">Aanpassen</a>)</div>
+
+<div style="margin-bottom: 1em;">
+Zoekwoorden gevonden: 
+%for keyword in keywords_matched:
+    <span class="highlight">${keyword}</span>,
+%endfor
+</div>
+
+${content}

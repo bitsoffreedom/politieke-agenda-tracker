@@ -1,0 +1,14 @@
+<%! 
+import cherrypy 
+from cgi import escape
+%>
+
+<%inherit file="base.html"/>
+
+<form action="${cherrypy.url('/save_config')}" method="POST">
+    <div>Zoekwoorden:</div>
+    <textarea style="width: 700px; height: 200px;" name="config.keywords">${escape(keywords)}</textarea>
+    <div>
+        <input type="submit" value="Save"/>
+    </div>
+</form>
